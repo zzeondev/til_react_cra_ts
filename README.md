@@ -183,3 +183,16 @@ const User = (): JSX.Element => {
 
 export default User;
 ```
+
+## 5. 실습 예제 4 (useState 버전 Todo)
+
+- 타입정의를 위한 폴더 : /src/types 폴더 생성
+  - todoType.ts 파일 생성
+- 글쓰기 : /src/todos/TodoWrite.tsx
+  - 입력창, 등록버튼
+
+- 글목록 : /src/todos/TodoList.tsx
+
+- 글한개의 아이템 : /src/todos/TodoItem.tsx
+  - 아이디, 제목, 완료여부, 수정버튼, 삭제버튼
+  - 상태 2가지 : 목록상태, 편집상태
