@@ -3,6 +3,18 @@
 - 리액트용 변수이다. (수업편의)
 - set으로 값을 변화시키면 리랜더링을 한다.
 
+## 0. `@` 으로 절대경로 설정하기
+
+- tsconfig.json
+
+```json
+"baseUrl": "src", // 프로젝트의 기본 경로
+"paths": {
+"@/_": ["_"], // @/ 로 src 폴더 전체를 참조
+"@types/_": ["types/_"] // @types 로 src/types 참조
+},
+```
+
 ## 1. 기본 예제
 
 - /src/components 폴더 생성
