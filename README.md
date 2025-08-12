@@ -208,3 +208,278 @@ export default User;
 - 글한개의 아이템 : /src/todos/TodoItem.tsx
   - 아이디, 제목, 완료여부, 수정버튼, 삭제버튼
   - 상태 2가지 : 목록상태, 편집상태
+
+- App.tsx
+
+```tsx
+import { useState } from 'react';
+import TodoList from './components/todos/TodoList';
+import TodoWrite from './components/todos/TodoWrite';
+
+// 공통으로 사용하는 type 정의 및 interface 는 별도의 폴더에 보관하자.
+import { ITodoType, TodoType } from './types/todoType';
+
+// 테스트를 위한 목업 데이터 (/src/api/dummy.ts 추천)
+const initialTodos: TodoType[] = [];
+
+function App(): JSX.Element {
+  // ts 자리
+  // {id: "", title: "", completed:false}
+  const [todos, setTodos] = useState<(ITodoType | TodoType)[]>(initialTodos);
+
+  // todos 를 업데이트 하는 함수
+  const handleTodoUpdate = (newTodo: TodoType): void => {
+    // 아래는 prev : 현재 최신 state 를 나타냄
+    // setTodos(prev => [newTodo, ...prev]);
+
+    const arr: TodoType[] = [newTodo, ...todos];
+    setTodos(arr);
+  };
+
+  // todo 목록에서 실행할 함수들
+  const onToggle = (id: string): void => {
+    // console.log('onToggle : ', id);
+    // 전달 받은 ID 를 이용해서 map 으로 찾아서 id 가 같으면 completed 변경
+    const arr: TodoType[] = todos.map(todo =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+    );
+    setTodos(arr);
+  };
+  const onDelete = (id: string): void => {
+    // console.log('onDelete : ', id);
+    // 전달 받은 ID 를 제외한 나머지 만 모아서 목록 변경
+    const arr: TodoType[] = todos.filter(todo => todo.id !== id);
+    setTodos(arr);
+  };
+
+  const onEdit = (id: string, newTitle: string): void => {
+    // 아이디와 새로운 타이틀을 알 수 있다.
+    // 아이디를 이용해서 해당 타이틀을 수정하고 업데이트 해보자.
+    const arr = todos.map(item => (item.id === id ? { ...item, title: newTitle } : item));
+    setTodos(arr);
+  };
+
+  // tsx 자리
+  return (
+    <div>
+      <h1>할일 앱서비스</h1>
+      <div>
+        <TodoWrite setTodos={setTodos} handleTodoUpdate={handleTodoUpdate} />
+        <TodoList todos={todos} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+- /src/components/todos/TodoWrite.tsx
+
+```tsx
+import { ChangeEvent, KeyboardEvent, useState } from 'react';
+import { TodoType } from '../../types/todoType';
+
+type TodoWriteProps = {
+  setTodos: React.Dispatch<React.SetStateAction<TodoType[]>>;
+  handleTodoUpdate: (newTodo: TodoType) => void;
+};
+
+const TodoWrite = ({ setTodos, handleTodoUpdate }: TodoWriteProps) => {
+  // js 자리
+  // 할일 제목 값 관리
+  const [title, setTitle] = useState<string>('');
+
+  // title 변경시 onChange 이벤트 처리해보기
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // enter 키를 입력시 처리
+    if (e.key === 'Enter') {
+      handleAdd();
+    }
+  };
+
+  // 새 할일 등록하기
+  const handleAdd = () => {
+    // 공백 입력 금지하기
+    if (title.trim()) {
+      // {id: "", title: "", completed:false}
+      const newTodo: TodoType = {
+        id: Date.now().toString(),
+        title: title,
+        completed: false,
+      };
+      // 1. 만약 setTodo 등의 useState 를 활용한다면?
+      // 아래는 prev : 현재 최신 state 를 나타냄
+      // setTodos(prev => [newTodo, ...prev]);
+
+      // 2. 함수의 매개변수로 전달한다면?
+      handleTodoUpdate(newTodo);
+
+      setTitle('');
+    }
+  };
+
+  // jsx 자리
+  return (
+    <div>
+      <input type="text" value={title} onChange={e => handleChange(e)} onKeyDown={handleKeyDown} />
+      <button onClick={handleAdd}>등록</button>
+    </div>
+  );
+};
+
+export default TodoWrite;
+```
+
+- /src/components/todos/TodoList.tsx
+
+```tsx
+import { TodoType } from '../../types/todoType';
+import TodoItem from './TodoItem';
+
+type TodoListProps = {
+  todos: TodoType[];
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string, newTitle: string) => void;
+};
+
+const TodoList = ({ todos, onToggle, onDelete, onEdit }: TodoListProps): JSX.Element => {
+  return (
+    <div>
+      <h2>할일목록</h2>
+      {todos.length === 0 ? (
+        <p>목록이 없습니다.</p>
+      ) : (
+        <ul>
+          {todos.map(item => (
+            <TodoItem
+              key={item.id}
+              todo={item}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onEdit={onEdit}
+            />
+          ))}
+        </ul>
+      )}
+
+      {/* 할일 즉 todos 는 여러개의 item 으로 구성된 배열이다. map 으로 출력 */}
+      {/* <ul>
+        {todos.map(item => (
+          <TodoItem
+            key={item.id}
+            todo={item}
+            onToggle={onToggle}
+            onDelete={onDelete}
+            onEdit={onEdit}
+          />
+        ))}
+      </ul> */}
+
+      {/* <TodoItem onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} /> */}
+    </div>
+  );
+};
+
+export default TodoList;
+```
+
+- /src/components/todos/TodoItem.tsx
+
+```tsx
+import { TodoType } from '@/types/todoType';
+import { KeyboardEvent, useState } from 'react';
+
+type TodoItemProps = {
+  todo: TodoType;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string, newTitle: string) => void;
+};
+
+const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) => {
+  // js 자리
+  // 현재 Edit 상태인지 아닌지 관리
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+  // Edit 상태라면 입력중인 title 내용 관리
+  const [editTitle, setEditTitle] = useState<string>(todo.title);
+
+  // 수정은 별도의 입력창 구성으로 수정 후 값 만 업데이트
+  const handleEdit = () => {
+    // console.log('여기에서 내용을 수정하는 기능 작성 후 완료된 데이터 전송');
+    // isEdit 을 true 로 변경
+    setIsEdit(true);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // console.log(e.key);
+    if (e.key === 'Enter') {
+      handleEditSave();
+    }
+    if (e.key === 'Escape') {
+      handleEditCancel();
+    }
+  };
+
+  // 수정 후 저장 기능
+  const handleEditSave = () => {
+    // console.log('수정완료 저장');
+    // 1. 업데이트 해줌
+    if (editTitle.trim()) {
+      // 변경되어야 할 ID, 새로운 타이틀 전달
+      onEdit(todo.id, editTitle);
+      // 2. 상태는 isEdit 을 false 로 변경
+      setIsEdit(false);
+    }
+  };
+
+  // 수정 취소 기능
+  const handleEditCancel = () => {
+    // 1. editTitle 을 원래대로 돌리고
+    setEditTitle(todo.title);
+    // 2. isEdit 을 false 로 설정하고
+    setIsEdit(false);
+  };
+
+  // CSS 객체 만들기 (React.CSSProperties 타입 명시시 코드힌트 유용)
+  const liStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: todo.completed ? 'gray' : 'red',
+    textDecoration: todo.completed ? 'line-through' : 'none',
+  };
+
+  return (
+    <li style={liStyle}>
+      {isEdit ? (
+        <>
+          <input
+            type="text"
+            value={editTitle}
+            onChange={e => setEditTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button onClick={handleEditSave}>저장</button>
+          <button onClick={handleEditCancel}>취소</button>
+        </>
+      ) : (
+        <>
+          <input type="checkbox" onChange={() => onToggle(todo.id)} checked={todo.completed} />
+          <span>{todo.title}</span>
+          <button onClick={handleEdit}>수정</button>
+          <button onClick={() => onDelete(todo.id)}>삭제</button>
+        </>
+      )}
+    </li>
+  );
+};
+
+export default TodoItem;
+```
