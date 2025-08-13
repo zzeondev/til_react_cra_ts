@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "src", // 프로젝트의 기본 경로
     "paths": {
-      "@/*": ["*"], // @/ 로 src 폴더 전체를 참조
+      "@/*": ["./*"], // @/ 로 src 폴더 전체를 참조
       "@types/*": ["types/*"] // @types 로 src/types 참조
     },
     "target": "es5",
