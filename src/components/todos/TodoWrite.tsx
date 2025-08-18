@@ -1,8 +1,10 @@
 import { ChangeEvent, KeyboardEvent, useState } from 'react';
 import { TodoType } from '../../types/todoType';
 import { useTodoActions } from '../../context/todo/hooks';
+import { useNavigate } from 'react-router-dom';
 
 const TodoWrite = () => {
+  const navigate = useNavigate();
   // js 자리
   const { addTodo } = useTodoActions();
   // 할일 제목 값 관리
@@ -28,6 +30,7 @@ const TodoWrite = () => {
       };
       addTodo(newTodo);
       setTitle('');
+      navigate('/todos/read');
     }
   };
 
